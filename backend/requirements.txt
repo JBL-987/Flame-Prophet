@@ -1,0 +1,26 @@
+# Basic Flask Template Requirements
+Flask==2.3.3
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+Werkzeug==2.3.7
+# Note: using specific compatible versions due to httpx/gotrue compatibility
+httpx==0.24.1
+requests==2.31.0
+
+# Database and Auth Dependencies
+supabase==2.3.5
+bcrypt==4.0.1
+PyJWT==2.8.0
+Authlib==1.2.1
+
+# Email verification (optional - can be added later)
+# flask-mail==0.9.1
+
+# TODO: Add your ML dependencies here when needed
+# Examples:
+# scikit-learn
+# numpy
+# pandas
+# tensorflow
+# torch
+# joblib
