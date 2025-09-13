@@ -2,8 +2,6 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import os
 from flask import Blueprint, request, jsonify, g, current_app
-# Temporarily disabled OAuth - using Supabase Auth instead
-# from database import get_db_connection, return_db_connection
 from middleware import create_access_token, create_refresh_token
 
 oauth_bp = Blueprint('oauth', __name__)

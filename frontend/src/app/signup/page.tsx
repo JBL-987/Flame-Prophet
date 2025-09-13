@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
-import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth";
 
 // Vanta.js Type Declaration
@@ -25,7 +24,6 @@ export default function Signup() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const vantaRef = useRef(null);
 
   useEffect(() => {
@@ -114,11 +112,15 @@ export default function Signup() {
       Swal.fire({
         icon: "success",
         title: "Success!",
-        text: "Account created successfully!",
-        timer: 1500,
+        text: "Account created successfully! Redirecting...",
+        timer: 1000,
         showConfirmButton: false
       });
-      router.push("/main");
+
+      // Small delay to ensure auth state is updated before navigation
+      setTimeout(() => {
+        window.location.href = "/main";
+      }, 500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred. Please try again.";
       Swal.fire({
@@ -136,7 +138,7 @@ export default function Signup() {
     setError("");
 
     try {
-      await authService.googleLogin(`${window.location.origin}/main`);
+      await authService.googleLogin(`${window.location.origin}/login`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with Google signup";
       setError(errorMessage);
@@ -163,10 +165,9 @@ export default function Signup() {
           className="fixed inset-0 w-full h-full flex items-center justify-center bg-black transition-all duration-500"
           style={{ zIndex: 9999 }}
         >
-          {/* Clean black background without any gradients or text */}
-          <div className="flex items-center justify-center">
-            {/* Simple Orange Spinner */}
-            <div className="w-12 h-12 border-4 border-t-orange-400 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-white/20 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-12 h-12 border-4 border-t-white border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
           </div>
         </div>
       )}

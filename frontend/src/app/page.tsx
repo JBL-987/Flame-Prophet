@@ -139,10 +139,9 @@ export default function Home() {
           className="fixed inset-0 w-full h-full flex items-center justify-center bg-black transition-all duration-500"
           style={{ zIndex: 9999 }}
         >
-          {/* Clean black background without any gradients or text */}
-          <div className="flex items-center justify-center">
-            {/* Simple Orange Spinner */}
-            <div className="w-12 h-12 border-4 border-t-orange-400 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-white/20 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-12 h-12 border-4 border-t-white border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
           </div>
         </div>
       )}

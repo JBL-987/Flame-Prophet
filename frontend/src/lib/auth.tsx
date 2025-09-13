@@ -153,7 +153,28 @@ class AuthService {
         throw new Error(error.error || 'Registration failed');
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // If registration includes login tokens (auto-login), save them
+      if (data.access_token && data.refresh_token) {
+        this.setTokens({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          token_type: data.token_type,
+          expires_in: data.expires_in
+        });
+
+        // Decode user ID from token
+        const decoded = jwtDecode<JWTPayload>(data.access_token);
+        if (decoded.exp) {
+          this.user = { id: decoded.user_id, email: credentials.email };
+        }
+
+        // Load full user profile
+        await this.loadUserProfile();
+      }
+
+      return data;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -364,17 +385,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // Prevent multiple simultaneous initializations
-      if (!setLoading.toString().includes('setLoading')) {
-        console.warn('initializeAuth called unexpectedly');
-        return;
-      }
-
       try {
-        // Add a small delay to ensure DOM is fully loaded
-        if (typeof window !== 'undefined') {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        console.log('Initializing auth...');
 
         const isAuth = authService.isAuthenticated();
 
@@ -388,7 +400,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(currentUser);
           } else {
             console.warn('Profile loading succeeded but no user data received');
-            // Don't logout here as user might still be valid
           }
         } else {
           console.log('User is not authenticated');
@@ -396,23 +407,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Failed to initialize auth:', error);
 
-        // Only logout for auth-related errors, not network issues
-        if (error instanceof Error) {
-          if (error.message.includes('Session expired') ||
-              error.message.includes('Token refresh failed') ||
-              error.message.includes('login again')) {
-            console.log('Logging out due to auth failure in initialization');
-            await authService.logout();
-            setUser(null);
-          }
-          // For other errors (network, etc.), keep tokens and try again later
-        }
+        // For any initial error, just don't set a user (remains null)
+        // Don't logout as that might cause loops
+        console.warn('Auth initialization failed, continuing without user');
       } finally {
         setLoading(false);
       }
     };
 
-    initializeAuth();
+    // Add fallback timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('Auth initialization timed out, setting loading to false');
+      setLoading(false);
+    }, 10000); // 10 seconds timeout
+
+    initializeAuth().finally(() => {
+      clearTimeout(timeoutId);
+    });
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
@@ -427,7 +438,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const register = async (credentials: RegisterCredentials) => {
-    return await authService.register(credentials);
+    const result = await authService.register(credentials);
+    const currentUser = authService.getUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+    return result;
   };
 
   const googleLogin = async (redirectUri?: string) => {

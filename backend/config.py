@@ -31,7 +31,8 @@ def setup_app():
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(32))
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
-    app.config['JWT_ACCESS_TOKEN_EXPIRE_MINUTES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', '15'))
+    # Extended session durations for better user experience
+    app.config['JWT_ACCESS_TOKEN_EXPIRE_MINUTES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', '240'))  # 4 hours instead of 15 minutes
     app.config['JWT_REFRESH_TOKEN_EXPIRE_DAYS'] = int(os.getenv('JWT_REFRESH_TOKEN_EXPIRE_DAYS', '30'))
 
     # OAuth Configuration
@@ -49,7 +50,7 @@ def load_config():
         'SUPABASE_SERVICE_KEY': os.getenv('SUPABASE_SERVICE_KEY'),
         'SECRET_KEY': os.getenv('SECRET_KEY', secrets.token_hex(32)),
         'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY', secrets.token_hex(32)),
-        'JWT_ACCESS_TOKEN_EXPIRE_MINUTES': int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', '15')),
+        'JWT_ACCESS_TOKEN_EXPIRE_MINUTES': int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', '240')),
         'JWT_REFRESH_TOKEN_EXPIRE_DAYS': int(os.getenv('JWT_REFRESH_TOKEN_EXPIRE_DAYS', '30')),
         'GOOGLE_CLIENT_ID': os.getenv('GOOGLE_CLIENT_ID'),
         'GOOGLE_CLIENT_SECRET': os.getenv('GOOGLE_CLIENT_SECRET'),

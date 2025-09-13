@@ -65,13 +65,47 @@ def register():
 
         supabase.table('profiles').insert(profile_data).execute()
 
+        # Create session data and login automatically
+        session_token = str(uuid.uuid4())
+        refresh_token = str(uuid.uuid4())
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        # Insert session data
+        session_data = {
+            'user_id': user_id,
+            'session_token': session_token,
+            'refresh_token': refresh_token,
+            'ip_address': request.remote_addr or 'unknown',
+            'expires_at': expires_at.isoformat(),
+            'status': 'active'
+        }
+
+        supabase.table('user_sessions').insert(session_data).execute()
+
+        # Update last seen
+        supabase.table('profiles').update({
+            'last_seen': datetime.now(timezone.utc).isoformat()
+        }).eq('id', user_id).execute()
+
+        # Create tokens
+        access_token = create_access_token(user_id)
+        refresh_tok = create_refresh_token(user_id)
+
         # TODO: Send verification email
         # For now, just return success message
 
         return jsonify({
-            'message': 'User registered successfully.',
+            'message': 'User registered and logged in successfully.',
             'user_id': user_id,
-            'email_verification_required': False  # You can implement email verification later
+            'email_verification_required': False,  # You can implement email verification later
+            'access_token': access_token,
+            'refresh_token': refresh_tok,
+            'token_type': 'Bearer',
+            'expires_in': 3600,  # 60 minutes
+            'user': {
+                'id': user_id,
+                'email': email
+            }
         }), 201
 
     except Exception as e:
@@ -148,7 +182,7 @@ def login():
             'access_token': access_token,
             'refresh_token': refresh_tok,
             'token_type': 'Bearer',
-            'expires_in': 900,  # 15 minutes
+            'expires_in': 3600,  # 60 minutes
             'user': {
                 'id': user_id,
                 'email': email
