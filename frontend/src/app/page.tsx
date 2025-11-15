@@ -32,6 +32,7 @@ export default function Home() {
   const { scrollY } = useScroll();
   const modelOpacity = useTransform(scrollY, [0, 500], [1, 0]);
   const headerOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const currentYear = new Date().getFullYear();
 
   // Vanta.js Globe Effect
   useEffect(() => {
@@ -51,8 +52,8 @@ export default function Home() {
             minWidth: 200.00,
             scale: 0.8,
             scaleMobile: 0.6,
-            color: 0xFFA500,   
-            color2: 0xFF8C00,  
+            color: 0xFFA500,
+            color2: 0xFF8C00,
             backgroundColor: 0x000000
           });
           setIsLoaded(true);
@@ -163,15 +164,9 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
                   className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium"
-                  href="/signup"
+                  href="/main"
                 >
-                  Get started
-                </a>
-                <a
-                  className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium"
-                  href="/login"
-                >
-                  Already have an account?
+                  Explore Features
                 </a>
               </div>
             </motion.main>
@@ -297,7 +292,7 @@ export default function Home() {
             ref={footerRef}
             className="w-full py-6 text-center text-white/80 text-sm bg-black mt-8 border-t border-white/10"
           >
-            2025 © Flame Prophet. All rights reserved.
+            {currentYear} © Flame Prophet. All rights reserved.
           </footer>
         </>
       )}

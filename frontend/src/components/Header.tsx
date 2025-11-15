@@ -2,45 +2,33 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Menu, LogOut, X, Search, BarChart3, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { Upload, Menu, X, Search, Flame } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { LocationSearchService, ProcessedLocation } from "@/lib/locationSearch";
 import { useLocationContext } from "@/contexts/LocationContext";
+import { classifyWildfireArea } from "@/lib/api";
+import { captureMapScreenshot, blobToFile, generateScreenshotFilename } from "@/lib/mapscreenshot";
+import { toast } from "sonner";
 
 export function Header() {
-  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isClassifying, setIsClassifying] = useState(false);
 
   const {
-    selectedLocation,
     searchSuggestions,
     isSearching,
     setSelectedLocation,
     setSearchSuggestions,
     setIsSearching,
     setSearchQuery: setContextSearchQuery,
-    clearSearch,
   } = useLocationContext();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
-
-  const handleSignOut = async () => {
-    await logout();
-    setIsMobileMenuOpen(false);
-    router.push('/login');
-  };
-
-  const handleDashboardClick = () => {
-    router.push('/dashboard');
-    setIsMobileMenuOpen(false);
-  };
 
   const handleMainClick = () => {
     router.push('/main');
@@ -51,18 +39,61 @@ export function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  // Handle quick classification from header
+  const handleClassifyArea = async () => {
+    // Find map container element
+    const mapElement = document.querySelector('.leaflet-container') as HTMLElement;
+    if (!mapElement) {
+      toast.error('Map not found', {
+        description: 'Please ensure the map is loaded'
+      });
+      return;
+    }
+
+    setIsClassifying(true);
+    toast.loading('Capturing map screenshot...', { id: 'classify' });
+
+    try {
+      // Capture screenshot using utility function
+      const screenshotBlob = await captureMapScreenshot(mapElement, {
+        backgroundColor: '#000000',
+        scale: 1,
+      });
+
+      // Convert blob to file
+      const filename = generateScreenshotFilename();
+      const screenshotFile = blobToFile(screenshotBlob, filename);
+
+      toast.loading('Classifying wildfire...', { id: 'classify' });
+
+      const result = await classifyWildfireArea({ image: screenshotFile });
+
+      toast.success('Classification completed!', {
+        id: 'classify',
+        description: result.is_wildfire ? `WILDFIRE DETECTED (${Math.round(result.confidence * 100)}%)` : `NO WILDFIRE (${Math.round(result.confidence * 100)}%)`
+      });
+    } catch (error) {
+      console.error('Classification error:', error);
+      toast.error('Classification failed', {
+        id: 'classify',
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
+      setIsClassifying(false);
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     // Immediately perform search and select first result
-    performSearch(searchQuery, false, true);
+    performSearch(searchQuery, true);
   };
 
-  const performSearch = async (query: string, debounce: boolean = false, selectFirst: boolean = false) => {
+  const performSearch = async (query: string, selectFirst: boolean = false) => {
     if (!query.trim()) {
       setSearchSuggestions([]);
-      setShowSuggestions(false);
       return;
     }
 
@@ -74,12 +105,9 @@ export function Header() {
         setSearchSuggestions(results);
         if (selectFirst && results.length > 0) {
           handleLocationSelect(results[0]);
-        } else {
-          setShowSuggestions(true);
         }
       } else {
         setSearchSuggestions([]);
-        setShowSuggestions(false);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -102,7 +130,6 @@ export function Header() {
 
     setSearchQuery(location.name);
     setSearchSuggestions([]);
-    setShowSuggestions(false);
     setContextSearchQuery(location.name);
   };
 
@@ -119,7 +146,6 @@ export function Header() {
       }, 300);
     } else {
       setSearchSuggestions([]);
-      setShowSuggestions(false);
     }
   };
 
@@ -132,75 +158,26 @@ export function Header() {
         searchInputRef.current &&
         !searchInputRef.current.contains(event.target as Node)
       ) {
-        setShowSuggestions(false);
+        setSearchSuggestions([]);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  });
 
   // Render header based on current pathname
   const renderHeader = () => {
     switch (pathname) {
-      case '/dashboard':
-        return renderDashboardHeader();
-      
       case '/main':
       case '/':
         return renderMainHeader();
-      
+
       default:
         return renderDefaultHeader();
     }
   };
 
-  // Dashboard Header
-  const renderDashboardHeader = () => (
-    <header className="bg-black/95 backdrop-blur-sm border-b border-white/10 px-4 sm:px-6 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            onClick={handleMainClick}
-            className="text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            <span className="text-lg font-semibold">Back to Main</span>
-          </Button>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-orange-400">Dashboard</h1>
-          
-          {/* User Avatar */}
-          {user && (
-            <div className="hidden sm:flex items-center space-x-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                {user.email?.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm text-white/80 hidden lg:inline">
-                {user.email?.split("@")[0]}
-              </span>
-            </div>
-          )}
-          
-          {/* Mobile menu for dashboard */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white/80 hover:bg-white/10 sm:hidden"
-            onClick={toggleMobileMenu}
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
-        </div>
-      </div>
-      
-      {/* Mobile Menu for Dashboard */}
-      {renderDashboardMobileMenu()}
-    </header>
-  );
 
   // Main Page Header
   const renderMainHeader = () => (
@@ -212,12 +189,12 @@ export function Header() {
             <h1 className="text-lg sm:text-xl font-bold text-white">Flame Prophet</h1>
           </div>
           <span className="text-xs sm:text-sm text-white/70 hidden lg:inline">
-            AI Wildfire Prediction
+            AI Wildfire Classification
           </span>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-3">
+        <div className="hidden lg:flex items-center space-x-3">
 
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex items-center space-x-2">
@@ -228,11 +205,6 @@ export function Header() {
                   placeholder="Search locations..."
                   value={searchQuery}
                   onChange={handleInputChange}
-                  onFocus={() => {
-                    if (searchSuggestions.length > 0) {
-                      setShowSuggestions(true);
-                    }
-                  }}
                   className="w-48 rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white px-4 py-2 text-sm shadow-lg"
                 />
                 <Button
@@ -249,26 +221,41 @@ export function Header() {
                 </Button>
               </div>
 
-
+              {/* Search Suggestions Dropdown */}
+              {searchSuggestions.length > 0 && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-lg border shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {searchSuggestions.map((location) => (
+                    <button
+                      key={location.id}
+                      onClick={() => handleLocationSelect(location)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900">{location.name}</div>
+                      <div className="text-sm text-gray-500">{location.displayName.split(',')[0]}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </form>
 
-          {/* Upload Button */}
+          {/* Classify Area Button */}
           <Button
-            variant="outline"
-            className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium"
+            onClick={handleClassifyArea}
+            disabled={isClassifying}
+            className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium disabled:opacity-50"
           >
-            <Upload className="w-4 h-4" />
-            <span>Upload Data</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleDashboardClick}
-            className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium"
-            >
-            <BarChart3 className="w-4 h-4" />
-            <span>Dashboard</span>
+            {isClassifying ? (
+              <>
+                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                <span>Classifying...</span>
+              </>
+            ) : (
+              <>
+                <Flame className="w-4 h-4" />
+                <span>Classify Area</span>
+              </>
+            )}
           </Button>
         </div>
 
@@ -276,7 +263,7 @@ export function Header() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-white/80 hover:bg-white/10 md:hidden"
+          className="text-white/80 hover:bg-white/10 lg:hidden"
           onClick={toggleMobileMenu}
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -298,7 +285,7 @@ export function Header() {
           </div>
           <h1 className="text-lg sm:text-xl font-bold text-white">Flame Prophet</h1>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -307,114 +294,30 @@ export function Header() {
           >
             Back to Main
           </Button>
-          
-          {user && (
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {user.email?.charAt(0).toUpperCase()}
-            </div>
-          )}
         </div>
       </div>
     </header>
   );
 
-  // Dashboard Mobile Menu
-  const renderDashboardMobileMenu = () => {
-    if (!isMobileMenuOpen) return null;
-    
-    return (
-      <>
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 sm:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
-        {/* Mobile Menu */}
-        <div className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-sm border-b border-gray-800 z-50 sm:hidden">
-          <div className="px-4 py-6 space-y-4">
-            {/* User Info */}
-            {user && (
-              <div className="flex items-center space-x-3 pb-4 border-b border-white/10">
-                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-white font-medium">{user.email?.split("@")[0]}</p>
-                  <p className="text-white/60 text-sm">{user.email}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation */}
-            <div className="space-y-3">
-              <Button
-                variant="outline"
-                onClick={handleMainClick}
-                className="w-full rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Main</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleSignOut}
-                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 flex items-center justify-start space-x-2 bg-transparent"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  };
 
   // Main Mobile Menu
   const renderMainMobileMenu = () => {
     if (!isMobileMenuOpen) return null;
-    
+
     return (
       <>
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Mobile Menu */}
-        <div className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-sm border-b border-gray-800 z-50 md:hidden">
+        <div className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-sm border-b border-gray-800 z-50 lg:hidden">
           <div className="px-4 py-6 space-y-4">
-            {/* User Info */}
-            {user ? (
-              <div className="flex items-center space-x-3 pb-4 border-b border-white/10">
-                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-white font-medium">{user.email?.split("@")[0]}</p>
-                  <p className="text-white/60 text-sm">{user.email}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm text-white/60 text-center py-2 border-b border-white/10">
-                Not signed in
-              </div>
-            )}
-
             {/* Navigation */}
             <div className="flex flex-col space-y-3">
-              {/* Dashboard Link */}
-              <Button
-                variant="outline"
-                className="w-full border-orange-500/30 text-orange-300 hover:bg-orange-500/10 flex items-center justify-start space-x-2 bg-transparent"
-                onClick={handleDashboardClick}
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Dashboard</span>
-              </Button>
+
 
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="relative">
@@ -439,6 +342,28 @@ export function Header() {
                 </Button>
               </form>
 
+              {/* Classify Area Button */}
+              <Button
+                onClick={() => {
+                  handleClassifyArea();
+                  setIsMobileMenuOpen(false); // Close menu after clicking
+                }}
+                disabled={isClassifying}
+                className="w-full rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white flex items-center justify-center gap-2 px-6 py-3 font-medium disabled:opacity-50"
+              >
+                {isClassifying ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                    <span>Classifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <Flame className="w-4 h-4" />
+                    <span>Classify Area</span>
+                  </>
+                )}
+              </Button>
+
               {/* Upload Button */}
               <Button
                 variant="outline"
@@ -447,23 +372,12 @@ export function Header() {
                 <Upload className="w-4 h-4" />
                 <span>Upload Data</span>
               </Button>
-
-              {user && (
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 flex items-center justify-start space-x-2 bg-transparent"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </Button>
-              )}
             </div>
 
             {/* Additional Info */}
             <div className="pt-2 border-t border-white/10">
               <div className="text-xs text-white/50 text-center">
-                AI Wildfire Prediction System
+                AI Wildfire Classification System
               </div>
             </div>
           </div>
