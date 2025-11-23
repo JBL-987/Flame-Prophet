@@ -5,7 +5,8 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { useLocationContext } from "@/contexts/LocationContext";
 
 // Fix for default Leaflet marker icons
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
+  ._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -23,7 +24,7 @@ interface MapComponentProps {
   ) => void;
 }
 
-// 🔸 Controller for reacting to selected location
+// Controller for reacting to selected location
 function MapController() {
   const map = useMap();
   const { selectedLocation } = useLocationContext();
@@ -36,7 +37,6 @@ function MapController() {
     const { latitude, longitude, name } = selectedLocation;
     const coords: [number, number] = [latitude, longitude];
 
-    // Avoid infinite loop when same location selected again
     if (
       lastCoords.current &&
       lastCoords.current[0] === coords[0] &&
@@ -46,41 +46,39 @@ function MapController() {
     }
     lastCoords.current = coords;
 
-    // Set map view only when coords change
     map.setView(coords, 13, { animate: true });
 
-    // Remove old marker if exists
     if (markerRef.current) {
       map.removeLayer(markerRef.current);
     }
 
-    // Custom location marker
+    // Menggunakan SVG simple
     const locationIcon = L.divIcon({
       className: "custom-location-marker",
-      html: `<div style="
-        background-color: #ff6b35;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 3px solid #ffffff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: bold;
-        color: white;
-      ">📍</div>`,
-      iconSize: [26, 26],
-      iconAnchor: [13, 26],
+      html: `
+        <div style="
+          background-color: #ff6b35;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 3px solid #ffffff;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="width: 6px; height: 6px; background: white; border-radius: 50%;"></div>
+        </div>
+      `,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
     });
 
-    // Create marker with popup
     const marker = L.marker(coords, { icon: locationIcon }).bindPopup(`
-      <div style="font-family: system-ui; max-width: 200px;">
-        <strong style="color: #ff6b35;">${name}</strong>
+      <div style="font-family: system-ui; max-width: 220px;">
+        <strong style="color: #ff6b35; font-size: 14px;">${name}</strong>
         <br />
-        <small style="color: #666;">
+        <small style="color: #555; font-size: 12px;">
           ${latitude.toFixed(6)}, ${longitude.toFixed(6)}
         </small>
       </div>
@@ -100,7 +98,7 @@ function MapController() {
   return null;
 }
 
-// 🔸 Custom zoom control provider
+// Custom zoom control provider
 function MapActions({
   onZoomReady,
 }: {
@@ -128,43 +126,59 @@ function MapActions({
   return null;
 }
 
-// 🔸 Main map component
+// Main map component
 export function MapComponent({ className, onMapReady }: MapComponentProps) {
-  const defaultCenter: [number, number] = [20, 0];
-  const defaultZoom = 2;
-
-  const esriAttribution =
-    "© <a href='https://www.esri.com/en-us/home'>Esri</a> - Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community";
-  const osmAttribution =
-    "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+  const defaultCenter: [number, number] = [-1.5, 113.5];
+  
+  // Batas koordinat dunia (Strict)
+  const maxBounds: L.LatLngBoundsExpression = [
+    [-85, -180], // Sedikit dipotong di kutub agar tile tidak error
+    [85, 180], 
+  ];
 
   return (
-    <div className={`w-full h-full ${className ?? ""} relative`}>
+    <div className={`w-full h-full ${className ?? ""} relative bg-[#0a0a0a]`}>
       <MapContainer
         center={defaultCenter}
-        zoom={defaultZoom}
-        className="w-full h-full z-0"
+        zoom={5}
+        minZoom={4} // Zoom out dibatasi agar tidak melihat duplikat
+        maxZoom={18}
+        maxBounds={maxBounds}
+        maxBoundsViscosity={1.0} // Bounce back effect yang kuat
+        className="w-full h-full z-0 outline-none"
         zoomControl={true}
         scrollWheelZoom={true}
         doubleClickZoom={true}
         attributionControl={false}
         whenReady={() => {
-          // Resize fix on map init
           setTimeout(() => {
             window.dispatchEvent(new Event("resize"));
-          }, 100);
+          }, 200);
         }}
       >
-        {/* Satellite Layer */}
+        {/* Satellite Layer - High Performance Config */}
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          attribution={esriAttribution}
+          detectRetina={true}       // Kualitas tajam (4K look)
+          maxNativeZoom={19}        // Agar tidak blur saat zoom maksimal
+          keepBuffer={20}           // Caching area sekitar SANGAT luas (makan RAM tapi cepat)
+          updateWhenZooming={false} // Animasi zoom jadi smooth (60fps)
+          updateWhenIdle={true}     // Hanya load saat map diam
+          noWrap={true}             // Mencegah duplikasi visual
+          bounds={maxBounds}
         />
-        {/* Optional Street Overlay */}
+
+        {/* Street Overlay */}
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          opacity={0.3}
-          attribution={osmAttribution}
+          opacity={0.35}
+          detectRetina={true}
+          maxNativeZoom={19}
+          keepBuffer={20}           // Samakan buffer dengan satelit
+          updateWhenZooming={false}
+          updateWhenIdle={true}
+          noWrap={true}
+          bounds={maxBounds}
         />
 
         <MapController />
@@ -180,7 +194,7 @@ export function MapComponent({ className, onMapReady }: MapComponentProps) {
         />
       </MapContainer>
 
-      {/* Info Panel */}
+      {/* Info Panel (Desain Simple yang diminta) */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg max-w-xs border border-orange-500/20 lg:block hidden">
         <h3 className="text-sm font-semibold text-orange-400 mb-2">
           Global Wildfire Monitor

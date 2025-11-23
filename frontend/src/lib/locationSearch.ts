@@ -45,7 +45,17 @@ export class LocationSearchService {
     try {
       console.log('🌍 Searching for location:', query);
 
-      const encodedQuery = encodeURIComponent(query.trim());
+      let encodedQuery = encodeURIComponent(query.trim());
+
+      // Check if query is coordinates (e.g., "-1.5,114" or "0.123 45.678")
+      const coordRegex = /^-?\d+\.?\d*\s*[,;]\s*-?\d+\.?\d*$|^-?\d+\.?\d*\s+-?\d+\.?\d*$/;
+      if (coordRegex.test(query.trim())) {
+        // Replace separator with comma for Nominatim
+        const coords = query.trim().replace(/[,;]/, ',').replace(/\s+/, ',');
+        encodedQuery = coords;
+        console.log('📍 Detected coordinates input:', coords);
+      }
+
       const url = `${this.NOMINATIM_URL}?q=${encodedQuery}&format=json&addressdetails=1&limit=${limit}`;
 
       const controller = new AbortController();

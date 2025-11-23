@@ -1,17 +1,15 @@
 /**
  * Flame Prophet - Map Screenshot Utility
- * Utility functions for capturing map screenshots using html2canvas
+ * Utility functions for capturing map screenshots using dom-to-image
  */
 
 /**
  * Screenshot options interface
  */
 interface ScreenshotOptions {
-  scale?: number;
-  backgroundColor?: string;
-  useCORS?: boolean;
-  allowTaint?: boolean;
-  logging?: boolean;
+  quality?: number;
+  bgcolor?: string;
+  filter?: (node: Node) => boolean;
 }
 
 /**
@@ -25,26 +23,27 @@ export async function captureMapScreenshot(
   options: ScreenshotOptions = {}
 ): Promise<Blob> {
   try {
-    // Dynamic import html2canvas to avoid SSR issues
-    const html2canvas = (await import('html2canvas')).default;
+    // Dynamic import dom-to-image to avoid SSR issues
+    const domtoimage = (await import('dom-to-image')).default;
 
-    const canvas = await html2canvas(mapElement, {
-      useCORS: options.useCORS ?? true,
-      allowTaint: options.allowTaint ?? true,
-      backgroundColor: options.backgroundColor ?? '#000000',
-      scale: options.scale ?? 1,
-      logging: options.logging ?? false,
+    const defaultFilter = (node: Node) => {
+      // Skip elements that might cause issues
+      if (node.nodeType !== Node.ELEMENT_NODE) return true;
+      const element = node as HTMLElement;
+      return !(element.tagName === 'CANVAS' || element.classList?.contains('leaflet-control'));
+    };
+
+    const blob = await domtoimage.toBlob(mapElement, {
+      quality: options.quality ?? 0.95,
+      bgcolor: options.bgcolor ?? '#ffffff',
+      filter: options.filter ?? defaultFilter,
     });
 
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('Failed to convert canvas to blob'));
-        }
-      }, 'image/png');
-    });
+    if (!blob) {
+      throw new Error('Failed to generate screenshot blob');
+    }
+
+    return blob;
   } catch (error) {
     console.error('Error capturing map screenshot:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

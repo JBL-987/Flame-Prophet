@@ -20,6 +20,8 @@ import {
   classifyWildfireArea,
   ClassificationResponse
 } from "@/lib/api";
+import { captureMapScreenshot, blobToFile } from "@/lib/mapscreenshot";
+import { useLocationContext } from "@/contexts/LocationContext";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import Image from "next/image";
@@ -41,6 +43,8 @@ const MapComponent = dynamic(
 ) as React.ComponentType<{ className?: string; onMapReady?: (mapElement: HTMLElement, zoom?: () => Promise<void>) => void }>;
 
 export default function MainPage() {
+  const { classificationResult, setClassificationResult } = useLocationContext();
+
   // Processing states
   const [isClassifying, setIsClassifying] = useState(false);
 
@@ -48,7 +52,6 @@ export default function MainPage() {
   const [mapElement, setMapElement] = useState<HTMLElement | null>(null);
   const [mapZoomFunction, setMapZoomFunction] = useState<(() => Promise<void>) | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
-  const [classificationResult, setClassificationResult] = useState<ClassificationResponse | null>(null);
 
   // ✅ Prevent infinite re-renders
   const handleMapReady = useCallback((element: HTMLElement, zoomToCurrent?: () => Promise<void>) => {
@@ -58,24 +61,16 @@ export default function MainPage() {
     }
   }, []);
 
-  // Capture map screenshot (with html2canvas)
-  const captureMapScreenshot = useCallback(async (): Promise<Blob> => {
+  // Capture map screenshot (using utility function)
+  const localCaptureScreenshot = useCallback(async (): Promise<Blob> => {
     if (!mapElement) throw new Error("Map not ready yet");
 
-    const html2canvas = (await import("html2canvas")).default;
-    const canvas = await html2canvas(mapElement, {
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#000",
-      scale: 2,
+    const blob = await captureMapScreenshot(mapElement, {
+      bgcolor: '#ffffff',
+      quality: 0.95,
     });
 
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(blob => {
-        if (blob) resolve(blob);
-        else reject(new Error("Failed to capture screenshot"));
-      }, "image/png");
-    });
+    return blob;
   }, [mapElement]);
 
 
@@ -94,7 +89,7 @@ export default function MainPage() {
       await mapZoomFunction();
       await new Promise(res => setTimeout(res, 300));
 
-      const blob = await captureMapScreenshot();
+      const blob = await localCaptureScreenshot();
       const file = new File([blob], `classification-${Date.now()}.png`, { type: "image/png" });
       const previewUrl = URL.createObjectURL(blob);
       setScreenshotPreview(previewUrl);
@@ -124,48 +119,47 @@ export default function MainPage() {
 
   // ✅ Sidebar component
   const SidebarContent = useCallback(() => (
-    <div className="h-full bg-black border-r border-gray-800 flex flex-col">
+    <div className="flex flex-col min-h-0 h-full bg-black border-r border-gray-800">
       <div className="p-4 border-b border-white/10">
         <h2 className="text-lg font-semibold text-white flex items-center">
           <Flame className="w-5 h-5 text-orange-400 mr-2" /> History
         </h2>
         <p className="text-xs text-white/70">CNN Classification Results</p>
       </div>
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex flex-col gap-6 p-4">
+          {/* Classification */}
+          {classificationResult && (
+            <Card className="bg-white/5 border-white/10 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-base text-white font-semibold">Latest Classification</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between text-base pb-1">
+                  <span className="text-white/70">Detection</span>
+                  <Badge className={classificationResult.is_wildfire ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}>
+                    {classificationResult.is_wildfire ? "WILDFIRE" : "SAFE"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-base mt-2">
+                  <span className="text-white/70">Confidence</span>
+                  <span className="text-white">{Math.round(classificationResult.confidence * 100)}%</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-      <ScrollArea className="flex-1 p-4 space-y-4">
-        {/* Classification */}
-        {classificationResult && (
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-sm text-white">Latest Classification</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between text-sm">
-                <span className="text-white/70">Detection</span>
-                <Badge className={classificationResult.is_wildfire ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}>
-                  {classificationResult.is_wildfire ? "WILDFIRE" : "SAFE"}
-                </Badge>
-              </div>
-              <div className="flex justify-between text-sm mt-2">
-                <span className="text-white/70">Confidence</span>
-                <span className="text-white">{Math.round(classificationResult.confidence * 100)}%</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Empty state or just reset button */}
-        {classificationResult ? (
-          <div className="space-y-2">
-            <Button variant="outline" onClick={handleReset} className="w-full border-white/20 text-white hover:bg-white/10">
+          {/* Empty state atau reset btn */}
+          {classificationResult ? (
+            <Button onClick={handleReset} className="w-full h-14 mt-4 rounded-xl text-lg bg-red-600 hover:bg-red-700 text-white font-semibold">
               Clear History
             </Button>
-          </div>
-        ) : (
-          <div className="text-center text-white/50 text-sm py-4">
-            Use the "Classify Area" button in the header above the map to start analysis
-          </div>
-        )}
+          ) : (
+            <div className="text-center text-white/50 text-base py-6">
+              Use the Classify Area button in the header above the map to start analysis
+            </div>
+          )}
+        </div>
       </ScrollArea>
     </div>
   ), [classificationResult, isClassifying, handleReset]);
@@ -191,6 +185,39 @@ export default function MainPage() {
                 width={128}
                 height={128}
               />
+            </div>
+          )}
+          {/* Classification Result Popup - Aligned with Sidebar */}
+          {classificationResult && (
+            <div className="absolute top-4 right-4 z-10">
+              <Card className="bg-black/90 backdrop-blur-sm border-orange-500/20 max-w-xs shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-white flex items-center">
+                    <Flame className="w-4 h-4 text-orange-400 mr-2" />
+                    Classification Result
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/70 text-sm">Detection:</span>
+                    <Badge className={classificationResult.is_wildfire ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}>
+                      {classificationResult.is_wildfire ? "WILDFIRE" : "SAFE"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/70 text-sm">Confidence:</span>
+                    <span className="text-white font-semibold">
+                      {Math.round(classificationResult.confidence * 100)}%
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleReset}
+                    className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors border-0"
+                  >
+                    Clear Result
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

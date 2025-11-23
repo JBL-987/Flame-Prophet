@@ -25,6 +25,7 @@ export function Header() {
     setSearchSuggestions,
     setIsSearching,
     setSearchQuery: setContextSearchQuery,
+    setClassificationResult,
   } = useLocationContext();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -56,8 +57,8 @@ export function Header() {
     try {
       // Capture screenshot using utility function
       const screenshotBlob = await captureMapScreenshot(mapElement, {
-        backgroundColor: '#000000',
-        scale: 1,
+        bgcolor: '#ffffff', // Use white background for better readability
+        quality: 0.95,
       });
 
       // Convert blob to file
@@ -67,6 +68,7 @@ export function Header() {
       toast.loading('Classifying wildfire...', { id: 'classify' });
 
       const result = await classifyWildfireArea({ image: screenshotFile });
+      setClassificationResult(result);
 
       toast.success('Classification completed!', {
         id: 'classify',

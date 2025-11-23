@@ -2,6 +2,12 @@
 
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
 
+interface ClassificationResponse {
+  is_wildfire: boolean;
+  confidence: number;
+  classification: 'wildfire' | 'no_wildfire';
+}
+
 export interface MapLocation {
   id: string;
   name: string;
@@ -17,10 +23,12 @@ interface LocationContextType {
   searchQuery: string;
   searchSuggestions: MapLocation[];
   isSearching: boolean;
+  classificationResult: ClassificationResponse | null;
   setSelectedLocation: (location: MapLocation | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchSuggestions: (suggestions: MapLocation[]) => void;
   setIsSearching: (isSearching: boolean) => void;
+  setClassificationResult: (result: ClassificationResponse | null) => void;
   clearSearch: () => void;
 }
 
@@ -43,6 +51,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState<MapLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [classificationResult, setClassificationResult] = useState<ClassificationResponse | null>(null);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -55,10 +64,12 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     searchQuery,
     searchSuggestions,
     isSearching,
+    classificationResult,
     setSelectedLocation,
     setSearchQuery,
     setSearchSuggestions,
     setIsSearching,
+    setClassificationResult,
     clearSearch,
   };
 
