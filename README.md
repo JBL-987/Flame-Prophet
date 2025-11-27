@@ -8,7 +8,7 @@
 
 ---
 
-## 📋 Project Overview
+## Project Overview
 
 Flame Prophet is an educational project developed as part of the Artificial Intelligence course at BINUS University. This comprehensive system demonstrates practical application of machine learning and data science concepts to address real-world environmental challenges - specifically forest fire prediction and prevention in Indonesia.
 
@@ -16,7 +16,7 @@ The project serves as an Assurance of Learning initiative, showcasing students' 
 
 ---
 
-## 🎯 Learning Objectives
+## Learning Objectives
 
 This project demonstrates mastery of:
 
@@ -28,7 +28,7 @@ This project demonstrates mastery of:
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### Frontend (Next.js + React + TypeScript)
 - **Framework**: Next.js 14 with App Router
@@ -53,7 +53,7 @@ This project demonstrates mastery of:
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 ### AI-Powered Fire Prediction
 - **Real-time Analysis**: Live satellite imagery processing
@@ -75,7 +75,7 @@ This project demonstrates mastery of:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Core Technologies
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS
@@ -97,7 +97,7 @@ This project demonstrates mastery of:
 
 ---
 
-## 📊 Data Sources & APIs
+## Data Sources & APIs
 
 - **NASA POWER API**: Meteorological and climatic data
 - **OpenWeatherMap**: Current weather conditions
@@ -107,7 +107,7 @@ This project demonstrates mastery of:
 
 ---
 
-## 🔧 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - Node.js 18+
@@ -147,7 +147,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 
 ---
 
-## 📈 Machine Learning Models
+## Machine Learning Models
 
 ### LSTM Temperature Prediction
 - **Architecture**: Bidirectional LSTM with attention mechanism
@@ -165,7 +165,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 
 ---
 
-## 🎓 Educational Value
+## Educational Value
 
 This project demonstrates:
 
@@ -177,7 +177,7 @@ This project demonstrates:
 
 ---
 
-## 📚 Course Alignment
+## Course Alignment
 
 **COMP6853004 - Artificial Intelligence**
 
@@ -191,19 +191,19 @@ This project covers all major topics in the AI curriculum:
 
 ---
 
-## 👥 Team & Contributors
+## Team & Contributors
 
 This project was developed by BINUS University students as part of the Artificial Intelligence course assessment. The implementation demonstrates practical skills in AI development, software engineering, and collaborative problem-solving.
 
 ---
 
-## 📄 License
+## License
 
 This educational project is developed for academic purposes as part of BINUS University's Artificial Intelligence course curriculum.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **BINUS University** for providing the educational framework
 - **NASA POWER** for meteorological data access
