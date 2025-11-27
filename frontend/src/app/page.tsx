@@ -159,7 +159,7 @@ export default function Home() {
                 Flame Prophet
               </h1>
               <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                Comprehensive geospatial AI solution for Indonesia forest fire crisis prevention
+                BINUS University Artificial Intelligence Course Project - Forest Fire Prediction System
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
@@ -175,113 +175,84 @@ export default function Home() {
           <div className="relative z-20 flex-1 flex flex-col">
         <SectionCard
           id="about-us"
-          title="About Our Mission"
+          title="Project Overview"
           index={0}
-          content={
+          content={(
             <>
-              <h3 className="text-xl font-semibold mb-2 mt-4">Advanced Forest Fire Prediction System</h3>
-              <p className="mb-4">Flame Prophet is a comprehensive geospatial AI solution designed to combat Indonesia recurring forest and peatland fire crisis. The platform integrates multiple data sources including NASA satellite imagery, meteorological data, vegetation indices, and historical fire patterns to create predictive models that can forecast fire risks with high accuracy.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">BINUS University AI Course Project</h3>
+              <p className="mb-4">Flame Prophet is an educational project developed as part of the Artificial Intelligence course (COMP6853004) at BINUS University. This project demonstrates practical application of machine learning and data science concepts to solve real-world environmental challenges.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Environmental Impact</h3>
-              <p className="mb-4">Our mission addresses the critical environmental challenges facing Southeast Asia by preventing forest fires that contribute to climate change, protect biodiversity, and eliminate transboundary haze pollution affecting 60+ million people across the region.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Learning Objectives</h3>
+              <p className="mb-4">Through this project, students learn to integrate multiple data sources, implement machine learning algorithms, build full-stack web applications, and apply AI solutions to geospatial problems. The project covers data preprocessing, model training, API development, and user interface design.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Advanced ML Implementation</h3>
-              <p className="mb-4">The system employs advanced machine learning techniques including Random Forest, XGBoost, and deep learning models, with extensive hyperparameter tuning to optimize prediction accuracy and ensure reliable forest fire prevention.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Technical Implementation</h3>
+              <p className="mb-4">The system demonstrates advanced machine learning techniques including LSTM neural networks for time series prediction, CNN models for image classification, and ensemble methods for improved accuracy. Students gain hands-on experience with Python, TensorFlow, React, and modern web development practices.</p>
             </>
-          }
+          )}
         />
 
         <SectionCard
           id="data-source"
-          title="Data Sources & Technology"
+          title="Data Science & Machine Learning"
           index={1}
           content={
             <>
-              <h3 className="text-xl font-semibold mb-2 mt-4">Multi-Source Data Integration</h3>
-              <p className="mb-4">Flame Prophet integrates comprehensive geospatial data sources including NASA satellite imagery, meteorological data, vegetation indices, and historical fire patterns to create predictive models that forecast fire risks with high accuracy.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Data Integration and Preprocessing</h3>
+              <p className="mb-4">The project demonstrates data integration from multiple sources including NASA POWER API for meteorological data and satellite imagery. Students learn data cleaning, feature engineering, normalization, and handling missing values - essential skills in real-world data science applications.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Real-Time Satellite Monitoring</h3>
-              <p className="mb-4">Our system processes live satellite imagery from multiple sources, ensuring real-time fire hotspot detection and monitoring. Real-time data streams provide the foundation for our predictive analytics and early warning systems.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Machine Learning Implementation</h3>
+              <p className="mb-4">Implementation of LSTM (Long Short-Term Memory) networks for time series forecasting and CNN (Convolutional Neural Networks) for image classification. The project covers model training, validation, hyperparameter tuning, and evaluation metrics commonly used in industry.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Advanced Geospatial Analysis</h3>
-              <p className="mb-4">Machine learning models analyze complex environmental patterns, weather conditions, and vegetation health to predict potential fire occurrences with unprecedented accuracy, enabling proactive prevention measures.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Geospatial Data Processing</h3>
+              <p className="mb-4">Students work with geospatial data formats, coordinate systems, and mapping APIs. The project covers spatial analysis techniques, distance calculations, and visualization of geographical data using modern web mapping technologies.</p>
             </>
           }
         />
 
         <SectionCard
-          id="licensing"
-          title="Platform Architecture"
+          id="architecture"
+          title="System Architecture & Technologies"
           index={2}
           content={
             <>
-              <h3 className="text-xl font-semibold mb-2 mt-4">Modern Fullstack Architecture</h3>
-              <p className="mb-4">Flame Prophet is built with modern fullstack architecture using Supabase for real-time data management. The platform ensures seamless integration of geospatial data with powerful AI capabilities for unprecedented forest fire prediction accuracy.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Full-Stack Web Development</h3>
+              <p className="mb-4">The project implements a complete full-stack application using Next.js (React) for the frontend and Flask (Python) for the backend API. Students learn modern web development practices including component-based architecture, RESTful API design, and responsive user interface development.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Real-Time Data Processing</h3>
-              <p className="mb-4">Our system processes massive datasets in real-time, utilizing distributed computing infrastructure to handle the complexity of satellite imagery analysis and meteorological data integration across Southeast Asia vast landscapes.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Backend Technologies</h3>
+              <p className="mb-4">Built with Python Flask framework, the backend handles machine learning model inference, data processing, and API endpoints. The system demonstrates proper error handling, logging, and scalable API design patterns used in production applications.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Scalable AI Infrastructure</h3>
-              <p className="mb-4">The platform leverages cloud computing resources with auto-scaling capabilities to handle peak loads during fire seasons. Advanced ML models run on optimized hardware infrastructure, ensuring fast response times and reliable predictions.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Frontend Technologies</h3>
+              <p className="mb-4">Modern React application with TypeScript for type safety, Tailwind CSS for styling, and integration with mapping libraries. The project covers state management, asynchronous data fetching, and building interactive user interfaces for data visualization.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Enterprise-Grade Security</h3>
-              <p className="mb-4">Built with enterprise-grade security protocols, Flame Prophet ensures data privacy and system integrity. All satellite imagery, meteorological data, and predictions are processed through encrypted channels with role-based access control.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Deployment & DevOps</h3>
+              <p className="mb-4">Students learn containerization with Docker, environment configuration, and deployment strategies. The project demonstrates best practices for code organization, version control, and collaborative development workflows.</p>
             </>
           }
         />
 
         <SectionCard
-          id="contact"
-          title="Contact Us"
+          id="features"
+          title="Learning Outcomes & Features"
           index={3}
           content={
             <>
-              <h3 className="text-xl font-semibold mb-2 mt-4">General Inquiries</h3>
-              <p className="mb-4">Email: team@tradetalk.io<br/>
-              Twitter: @TradeTalk<br/>
-              Discord: discord.tradetalk.io</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Machine Learning Model Implementation</h3>
+              <p className="mb-4">Students implement and deploy LSTM neural networks for time series forecasting and CNN models for satellite image classification, learning model training, validation, and deployment in production environments.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Business Development</h3>
-              <p className="mb-4">For partnership opportunities and enterprise solutions:<br/>
-              Email: partnerships@tradetalk.io<br/>
-              Schedule a call: calendly.com/tradetalk-partnerships</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Full-Stack Application Development</h3>
+              <p className="mb-4">Complete web application development covering frontend (React/TypeScript), backend (Python/Flask), database integration, and API design. Students learn modern development practices and deployment strategies.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Support</h3>
-              <p className="mb-4">Technical support and customer service:<br/>
-              Email: support@tradetalk.io<br/>
-              Help Center: help.tradetalk.io<br/>
-              Response Time: Within 24 hours</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Data Pipeline Engineering</h3>
+              <p className="mb-4">Building end-to-end data pipelines from external APIs (NASA POWER) to machine learning models. Covers data ingestion, preprocessing, feature engineering, and real-time data processing.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">Office Locations</h3>
-              <p className="mb-4">Singapore HQ: 60 Anson Road, #12-01, Singapore 079914<br/>
-              San Francisco: 535 Mission St, 14th Floor, San Francisco, CA 94105</p>
-            </>
-          }
-        />
+              <h3 className="text-xl font-semibold mb-2 mt-4">Geospatial Data Analysis</h3>
+              <p className="mb-4">Working with geographical data, coordinate systems, and mapping technologies. Students learn spatial analysis techniques and interactive map visualization for environmental monitoring.</p>
 
-        <SectionCard
-          id="products"
-          title="Key Features"
-          index={4}
-          content={
-            <>
-              <h3 className="text-xl font-semibold mb-2 mt-4">🔥 Real-time Fire Hotspot Detection</h3>
-              <p className="mb-4">Advanced thermal imaging analysis provides real-time detection and monitoring of forest fire hotspots across Indonesia vast landscapes.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Real-World Problem Solving</h3>
+              <p className="mb-4">Applying AI and data science to solve environmental challenges. The project demonstrates how theoretical concepts are applied to create practical solutions for forest fire prevention and monitoring.</p>
 
-              <h3 className="text-xl font-semibold mb-2 mt-4">🌡️ Weather-based Fire Risk Prediction</h3>
-              <p className="mb-4">Hyperparameter-tuned ML models analyze meteorological data to predict fire risks with unprecedented accuracy, enabling proactive prevention measures.</p>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">🗺️ Interactive Geospatial Mapping</h3>
-              <p className="mb-4">OpenStreetMap integration provides responsive geospatial mapping capabilities with real-time fire risk visualization and historical data overlay.</p>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">📊 Historical Fire Pattern Analysis</h3>
-              <p className="mb-4">Comprehensive trend analysis of historical fire patterns enables predictive modeling and early warning system development for stakeholders.</p>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">⚠️ Automated Early Warning Alert System</h3>
-              <p className="mb-4">Smart alert system delivers automated notifications to authorities and stakeholders based on real-time risk assessments and predictive analytics.</p>
-
-              <h3 className="text-xl font-semibold mb-2 mt-4">📱 Responsive Web Dashboard</h3>
-              <p className="mb-4">Intuitive dashboard provides stakeholders and authorities with comprehensive fire monitoring tools, real-time insights, and decision support capabilities.</p>
+              <h3 className="text-xl font-semibold mb-2 mt-4">Collaborative Development</h3>
+              <p className="mb-4">Team-based software development with version control, code review processes, and collaborative workflows. Students learn professional development practices used in industry.</p>
             </>
           }
         />

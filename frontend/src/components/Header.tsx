@@ -72,7 +72,7 @@ export function Header() {
 
       toast.success('Classification completed!', {
         id: 'classify',
-        description: result.is_wildfire ? `WILDFIRE DETECTED (${Math.round(result.confidence * 100)}%)` : `NO WILDFIRE (${Math.round(result.confidence * 100)}%)`
+        description: result.is_wildfire ? 'WILDFIRE DETECTED' : 'NO WILDFIRE'
       });
     } catch (error) {
       console.error('Classification error:', error);

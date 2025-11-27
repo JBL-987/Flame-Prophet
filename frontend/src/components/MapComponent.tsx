@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { useLocationContext } from "@/contexts/LocationContext";
+import type { Map as LMap } from 'leaflet';
 
 // Fix for default Leaflet marker icons
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
@@ -101,11 +102,19 @@ function MapController() {
 // Custom zoom control provider
 function MapActions({
   onZoomReady,
+  onMapCreated,
 }: {
   onZoomReady?: (zoomToCurrent: () => Promise<void>) => void;
+  onMapCreated?: (map: LMap) => void;
 }) {
   const map = useMap();
   const initialized = useRef(false);
+
+  useEffect(() => {
+    if (onMapCreated) {
+      onMapCreated(map);
+    }
+  }, [map, onMapCreated]);
 
   useEffect(() => {
     if (initialized.current || !onZoomReady) return;
@@ -129,52 +138,59 @@ function MapActions({
 // Main map component
 export function MapComponent({ className, onMapReady }: MapComponentProps) {
   const defaultCenter: [number, number] = [-1.5, 113.5];
-  
+  const mapRef = useRef<LMap | null>(null);
+  const mapKey = useRef(`map-${Date.now()}-${Math.random()}`); // Unique key for each instance
+
   // Batas koordinat dunia (Strict)
   const maxBounds: L.LatLngBoundsExpression = [
-    [-85, -180], // Sedikit dipotong di kutub agar tile tidak error
-    [85, 180], 
+    [-85, -180],
+    [85, 180],
   ];
+
+  useEffect(() => {
+    // Cleanup function for when component unmounts
+    return () => {
+      if (mapRef.current) {
+        try {
+          mapRef.current.off();
+          mapRef.current.remove();
+          mapRef.current = null;
+        } catch (e) {
+          // Ignore cleanup errors
+          console.warn('Map cleanup warning:', e);
+        }
+      }
+    };
+  }, []);
 
   return (
     <div className={`w-full h-full ${className ?? ""} relative bg-[#0a0a0a]`}>
       <MapContainer
+        key={mapKey.current} // Force new instance on each render
         center={defaultCenter}
-        zoom={5}
-        minZoom={4} // Zoom out dibatasi agar tidak melihat duplikat
-        maxZoom={18}
+        zoom={4}
+        minZoom={2}
+        maxZoom={20}
         maxBounds={maxBounds}
-        maxBoundsViscosity={1.0} // Bounce back effect yang kuat
+        maxBoundsViscosity={1.0}
         className="w-full h-full z-0 outline-none"
         zoomControl={true}
         scrollWheelZoom={true}
         doubleClickZoom={true}
         attributionControl={false}
         whenReady={() => {
+          // Small delay to ensure map is fully initialized
           setTimeout(() => {
             window.dispatchEvent(new Event("resize"));
           }, 200);
         }}
       >
-        {/* Satellite Layer - High Performance Config */}
+        {/* Satellite Layer */}
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          detectRetina={true}       // Kualitas tajam (4K look)
-          maxNativeZoom={19}        // Agar tidak blur saat zoom maksimal
-          keepBuffer={20}           // Caching area sekitar SANGAT luas (makan RAM tapi cepat)
-          updateWhenZooming={false} // Animasi zoom jadi smooth (60fps)
-          updateWhenIdle={true}     // Hanya load saat map diam
-          noWrap={true}             // Mencegah duplikasi visual
-          bounds={maxBounds}
-        />
-
-        {/* Street Overlay */}
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          opacity={0.35}
           detectRetina={true}
           maxNativeZoom={19}
-          keepBuffer={20}           // Samakan buffer dengan satelit
+          keepBuffer={20}
           updateWhenZooming={false}
           updateWhenIdle={true}
           noWrap={true}
@@ -183,6 +199,9 @@ export function MapComponent({ className, onMapReady }: MapComponentProps) {
 
         <MapController />
         <MapActions
+          onMapCreated={(map) => {
+            mapRef.current = map;
+          }}
           onZoomReady={(zoomToCurrent) => {
             const mapContainer = document.querySelector(
               ".leaflet-container"
@@ -194,7 +213,7 @@ export function MapComponent({ className, onMapReady }: MapComponentProps) {
         />
       </MapContainer>
 
-      {/* Info Panel (Desain Simple yang diminta) */}
+      {/* Info Panel */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg max-w-xs border border-orange-500/20 lg:block hidden">
         <h3 className="text-sm font-semibold text-orange-400 mb-2">
           Global Wildfire Monitor
@@ -211,4 +230,54 @@ export function MapComponent({ className, onMapReady }: MapComponentProps) {
   );
 }
 
-export default MapComponent;
+// Error Boundary for Map
+class MapErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback?: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Only log if it's a map container reuse error
+    if (error.message.includes('Map container is being reused by another instance')) {
+      console.warn('Map container reuse warning:', error.message);
+    } else {
+      console.error('Map component error:', error, errorInfo);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="w-full h-full flex items-center justify-center bg-[#0a0a0a] text-white">
+          <div className="text-center">
+            <p className="text-sm text-gray-400">Map temporarily unavailable</p>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="mt-2 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default function MapComponentWrapped(props: MapComponentProps) {
+  return (
+    <MapErrorBoundary>
+      <MapComponent {...props} />
+    </MapErrorBoundary>
+  );
+}

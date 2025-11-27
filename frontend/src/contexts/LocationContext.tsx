@@ -1,12 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
-
-interface ClassificationResponse {
-  is_wildfire: boolean;
-  confidence: number;
-  classification: 'wildfire' | 'no_wildfire';
-}
+import { CurrentWeatherData, HistoricalWeatherData, ClassificationResponse } from '@/lib/api';
 
 export interface MapLocation {
   id: string;
@@ -24,11 +19,17 @@ interface LocationContextType {
   searchSuggestions: MapLocation[];
   isSearching: boolean;
   classificationResult: ClassificationResponse | null;
+  currentWeather: CurrentWeatherData | null;
+  historicalWeather: HistoricalWeatherData | null;
+  isLoadingWeather: boolean;
   setSelectedLocation: (location: MapLocation | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchSuggestions: (suggestions: MapLocation[]) => void;
   setIsSearching: (isSearching: boolean) => void;
   setClassificationResult: (result: ClassificationResponse | null) => void;
+  setCurrentWeather: (weather: CurrentWeatherData | null) => void;
+  setHistoricalWeather: (weather: HistoricalWeatherData | null) => void;
+  setIsLoadingWeather: (loading: boolean) => void;
   clearSearch: () => void;
 }
 
@@ -52,6 +53,9 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   const [searchSuggestions, setSearchSuggestions] = useState<MapLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [classificationResult, setClassificationResult] = useState<ClassificationResponse | null>(null);
+  const [currentWeather, setCurrentWeather] = useState<CurrentWeatherData | null>(null);
+  const [historicalWeather, setHistoricalWeather] = useState<HistoricalWeatherData | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -65,11 +69,17 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     searchSuggestions,
     isSearching,
     classificationResult,
+    currentWeather,
+    historicalWeather,
+    isLoadingWeather,
     setSelectedLocation,
     setSearchQuery,
     setSearchSuggestions,
     setIsSearching,
     setClassificationResult,
+    setCurrentWeather,
+    setHistoricalWeather,
+    setIsLoadingWeather,
     clearSearch,
   };
 
