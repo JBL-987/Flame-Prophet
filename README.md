@@ -31,7 +31,7 @@ This project demonstrates mastery of:
 ## System Architecture
 
 ### Frontend (Next.js + React + TypeScript)
-- **Framework**: Next.js 14 with App Router
+- **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript for type safety
 - **Styling**: Tailwind CSS with custom animations
 - **Mapping**: OpenStreetMap integration with Leaflet
@@ -80,7 +80,6 @@ This project demonstrates mastery of:
 ### Core Technologies
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS
 - **Backend**: Python, Flask, TensorFlow
-- **Database**: PostgreSQL with Supabase integration
 - **Deployment**: Docker, Vercel, cloud infrastructure
 
 ### Machine Learning & Data Science
@@ -88,12 +87,6 @@ This project demonstrates mastery of:
 - **Data Processing**: NumPy, Pandas, Scikit-learn
 - **Geospatial**: GeoPandas, Folium
 - **Visualization**: Matplotlib, Plotly
-
-### DevOps & Infrastructure
-- **Containerization**: Docker, Docker Compose
-- **Version Control**: Git, GitHub
-- **CI/CD**: Automated testing and deployment
-- **Monitoring**: Application performance tracking
 
 ---
 
@@ -112,7 +105,6 @@ This project demonstrates mastery of:
 ### Prerequisites
 - Node.js 18+
 - Python 3.11+
-- Docker (optional)
 - Git
 
 ### Frontend Setup
@@ -137,8 +129,8 @@ Create `.env` files in both frontend and backend directories:
 ```bash
 # Backend .env
 MODEL_LSTM_PATH=ai/lstm.h5
+MODEL_CNN_PATH=ai/cnn.h5
 MODEL_SCALER_PATH=ai/scaler.joblib
-NASA_POWER_API_KEY=your_key_here
 
 # Frontend .env.local
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -151,7 +143,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 
 ### LSTM Temperature Prediction
 - **Architecture**: Bidirectional LSTM with attention mechanism
-- **Input**: 14 days of meteorological data (10 features each)
+- **Input**: 7 days of meteorological data (10 features each)
 - **Output**: Next-day temperature prediction
 - **Training Data**: Historical weather patterns from NASA POWER
 - **Accuracy**: RMSE < 2.0°C on validation set
@@ -206,7 +198,8 @@ This educational project is developed for academic purposes as part of BINUS Uni
 ## Acknowledgments
 
 - **BINUS University** for providing the educational framework
-- **NASA POWER** for meteorological data access
+- **NASA POWER** for weather data access
+- **Kaggle** for fire monitoring dataset
 - **Open-source Community** for development tools and libraries
 - **Environmental Agencies** for fire monitoring data and insights
 
